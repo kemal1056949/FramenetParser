@@ -52,7 +52,10 @@ class FramenetParserPredictor(Predictor):
 
     def _sentence_to_framenet_instances(self, json_dict: JsonDict) -> List[Instance]:
         sentence = json_dict["sentence"]
-        tokens = self._tokenizer.tokenize(sentence)
+        if isinstance(sentence, list):
+            tokens = sentence
+        else:
+            tokens = self._tokenizer.tokenize(sentence)
         return self.tokens_to_instances(tokens)
 
     def predict_instances(self, instances: List[Instance]) -> JsonDict:
