@@ -7,6 +7,7 @@ from spacy.tokens import Doc
 from allennlp.common.util import JsonDict, sanitize, group_by_count
 from allennlp.data import DatasetReader, Instance
 from allennlp.data.tokenizers.spacy_tokenizer import SpacyTokenizer
+from allennlp.data.tokenizers.token_class import Token
 from allennlp.models import Model
 from allennlp.predictors.predictor import Predictor
 
@@ -53,7 +54,8 @@ class FramenetParserPredictor(Predictor):
     def _sentence_to_framenet_instances(self, json_dict: JsonDict) -> List[Instance]:
         sentence = json_dict["sentence"]
         if isinstance(sentence, list):
-            tokens = sentence
+            assert all(isinstance(w, str) for w in sentence)
+            tokens = [Token(w) for w in sentence]
         else:
             tokens = self._tokenizer.tokenize(sentence)
         return self.tokens_to_instances(tokens)
