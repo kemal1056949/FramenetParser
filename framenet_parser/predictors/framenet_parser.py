@@ -54,9 +54,11 @@ class FramenetParserPredictor(Predictor):
     def _sentence_to_framenet_instances(self, json_dict: JsonDict) -> List[Instance]:
         sentence = json_dict["sentence"]
         if isinstance(sentence, list):
-            assert all(isinstance(w, str) for w in sentence)
+            if any(not isinstance(w, str) for w in sentence):
+                raise ValueError('if a list, sentence must contain strings')
             lemmas = json_dict.get('lemmas', [])
-            assert len(lemmas) == len(sentence)
+            if len(lemmas) != len(sentence):
+                raise ValueError('if sentence is a list, lemmas must be given')
             tokens = [Token(w, lemma_=l) for w, l in zip(sentence, lemmas)]
         else:
             tokens = self._tokenizer.tokenize(sentence)
