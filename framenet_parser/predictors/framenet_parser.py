@@ -55,7 +55,9 @@ class FramenetParserPredictor(Predictor):
         sentence = json_dict["sentence"]
         if isinstance(sentence, list):
             assert all(isinstance(w, str) for w in sentence)
-            tokens = [Token(w) for w in sentence]
+            lemmas = json_dict.get('lemmas', [])
+            assert len(lemmas) == len(sentence)
+            tokens = [Token(w, lemma_=l) for w, l in zip(sentence, lemmas)]
         else:
             tokens = self._tokenizer.tokenize(sentence)
         return self.tokens_to_instances(tokens)
