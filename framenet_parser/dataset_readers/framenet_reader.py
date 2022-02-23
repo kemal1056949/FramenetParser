@@ -61,11 +61,11 @@ def format_label_fields(node_types, node_attrs, origin_lexical_units, p2e_edges,
     frame_elements_dict_values = []
     for ((predicate_ixs, frame_label), role_start, role_end, relation) in frame_elements:
         target_ixs_tuple = tuple([tuple(x) for x in predicate_ixs])
-        frame_elements_dict_values.append((((target_ixs_tuple, frame_label), (role_start, role_end)), relation))  
+        frame_elements_dict_values.append((((target_ixs_tuple, frame_label), (role_start, role_end)), relation))
     frame_elements_dict = MissingDict("", frame_elements_dict_values)
 
     return node_types_dict, node_attrs_dict, origin_lus_dict, p2p_edges_dict, p2r_edges_dict, origin_frames_dict, frame_elements_dict
-    
+
 
 @DatasetReader.register('framenet')
 class FramenetParserReader(DatasetReader):
@@ -83,12 +83,12 @@ class FramenetParserReader(DatasetReader):
     @overrides
     def _read(self, file_path: str):
         with open(file_path, "r") as f:
-            lines = f.readlines()[:5]
+            lines = f.readlines()
 
         for line in lines:
             # Loop over the documents.
             js = json.loads(line)
-            instance = self.text_to_instance(js["sentence"], js["lemmas"], js["node_types"], js["node_attrs"], js["origin_lexical_units"], 
+            instance = self.text_to_instance(js["sentence"], js["lemmas"], js["node_types"], js["node_attrs"], js["origin_lexical_units"],
                                              js["p2p_edges"], js["p2r_edges"], js["origin_frames"], js["frame_elements"])
             yield instance
 
@@ -103,16 +103,16 @@ class FramenetParserReader(DatasetReader):
                          p2r_edges: List[Tuple[Tuple[Tuple[int, int], str], int, int, str]],
                          origin_frames: List[Tuple[Tuple[int, int], str]],
                          frame_elements: List[Tuple[Tuple[Tuple[int, int], str], int, int, str]]):
-        
+
         fields = {}
         text_field = TextField([Token(t) for t in tokens], token_indexers=self._token_indexers)
         fields["text"] = text_field
-        
+
         node_types_dict, node_attrs_dict, origin_lus_dict, p2p_edges_dict, p2r_edges_dict, \
             origin_frames_dict, frame_elements_dict = format_label_fields(node_types, node_attrs, origin_lexical_units,
-                                                                          p2p_edges, p2r_edges, 
+                                                                          p2p_edges, p2r_edges,
                                                                           origin_frames, frame_elements)
-        
+
         metadata = dict(sentence=tokens,
                         lemmas=lemmas,
                         node_types_dict=node_types_dict,
@@ -123,10 +123,10 @@ class FramenetParserReader(DatasetReader):
                         frame_elements=frame_elements,
                         origin_frames_dict=origin_frames_dict,
                         frame_elements_dict=frame_elements_dict)
-                        
+
         metadata_field = MetadataField(metadata)
         fields["metadata"] = metadata_field
-        
+
         # Span-based output fields.
         spans = []
         node_type_labels_list: Optional[List[str]] = []
@@ -156,7 +156,7 @@ class FramenetParserReader(DatasetReader):
                 valid_p2r_edges_list.append(ListField([LabelField(-1, skip_indexing=True)]))
 
             spans.append(SpanField(start, end, text_field))
-        
+
         span_field = ListField(spans)
         node_type_labels_field = SequenceLabelField(node_type_labels_list, span_field, label_namespace='node_type_labels')
         node_attr_labels_field = SequenceLabelField(node_attr_labels_list, span_field, label_namespace='node_attr_labels')
@@ -197,8 +197,8 @@ class FramenetParserReader(DatasetReader):
         p2r_edge_label_field = AdjacencyField(
             indices=p2r_edge_indices, sequence_field=span_field, labels=p2r_edge_labels,
             label_namespace="p2r_edge_labels")
-        
+
         fields["p2p_edge_labels"] = p2p_edge_label_field
         fields["p2r_edge_labels"] = p2r_edge_label_field
-        
+
         return Instance(fields)
